@@ -1,0 +1,1 @@
+@v1-types/=lib/v1-types/contracts/
