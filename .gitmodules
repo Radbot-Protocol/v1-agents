@@ -1,0 +1,3 @@
+[submodule "lib/v1-types"]
+	path = lib/v1-types
+	url = https://github.com/Radbot-Protocol/v1-types.git
