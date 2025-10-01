@@ -9,6 +9,7 @@ import {NoDelegateCall} from "./extensions/NoDelegateCall.sol";
 import {Ownable2Step, Ownable} from "@openzeppelin/contracts/access/Ownable2Step.sol";
 import {ReentrancyGuard} from "@openzeppelin/contracts/utils/ReentrancyGuard.sol";
 import {Initializable} from "@openzeppelin/contracts/proxy/utils/Initializable.sol";
+import {EnumerableSet} from "@openzeppelin/contracts/utils/structs/EnumerableSet.sol";
 
 contract RadbotV1Factory is
     IRadbotV1Factory,
@@ -17,6 +18,7 @@ contract RadbotV1Factory is
     ReentrancyGuard,
     Initializable
 {
+    using EnumerableSet for EnumerableSet.AddressSet;
     // State constants
     uint8 private constant STATE_UNINITIALIZED = 1;
     uint8 private constant STATE_ACTIVE = 2;
@@ -32,7 +34,7 @@ contract RadbotV1Factory is
     /// @inheritdoc IRadbotV1FactoryPayment
     mapping(address => bool) public override payments;
 
-    address[] private _paymentAddresses;
+    EnumerableSet.AddressSet private _paymentAddresses;
 
     /// @inheritdoc IRadbotV1FactoryImmutable
     address public override deployer;
@@ -166,21 +168,20 @@ contract RadbotV1Factory is
     }
 
     function getPayments() external view override returns (address[] memory) {
-        return _paymentAddresses;
+        return _paymentAddresses.values();
     }
 
     function _setPayments(address[] calldata payments_) private {
         require(payments_.length > 0, "EA"); // EMPTY ARRAY
         require(
-            _paymentAddresses.length + payments_.length <= MAX_PAYMENTS,
+            _paymentAddresses.length() + payments_.length <= MAX_PAYMENTS,
             "TM" // TOO MANY PAYMENTS
         );
 
         for (uint256 i = 0; i < payments_.length; i++) {
             require(payments_[i] != address(0), "ZP"); // ZERO PAYMENT
-            if (!payments[payments_[i]]) {
+            if (_paymentAddresses.add(payments_[i])) {
                 payments[payments_[i]] = true;
-                _paymentAddresses.push(payments_[i]);
             }
         }
 
@@ -191,24 +192,11 @@ contract RadbotV1Factory is
         require(payments_.length > 0, "EA"); // EMPTY ARRAY
 
         for (uint256 i = 0; i < payments_.length; i++) {
-            if (payments[payments_[i]]) {
+            if (_paymentAddresses.remove(payments_[i])) {
                 payments[payments_[i]] = false;
-                _removeFromArray(payments_[i]);
             }
         }
 
         emit PaymentsRemoved(payments_);
-    }
-
-    function _removeFromArray(address payment_) private {
-        uint256 length = _paymentAddresses.length;
-        for (uint256 i = 0; i < length; i++) {
-            if (_paymentAddresses[i] == payment_) {
-                _paymentAddresses[i] = _paymentAddresses[length - 1];
-                _paymentAddresses.pop();
-                return;
-            }
-        }
-        revert("PNF"); // PAYMENT NOT FOUND
     }
 }
