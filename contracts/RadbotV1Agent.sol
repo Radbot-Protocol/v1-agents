@@ -217,7 +217,7 @@ contract RadbotV1Agent is
                         image,
                         '", "attributes": [',
                         '{"trait_type": "Status", "value": "',
-                        uint256(_traits[tokenId].status).toString(),
+                        _traits[tokenId].status == 1 ? "DEPLOYED" : "INACTIVE",
                         '"},',
                         '{"trait_type": "Deployments", "value": "',
                         uint256(_traits[tokenId].deployments).toString(),
