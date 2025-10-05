@@ -11,6 +11,38 @@ import { stringToBytes32, stringToBytes16 } from "./helpers/string-helpers.js";
 
 const { ethers } = await network.connect();
 
+// Helper function to encode deployment data with new structure
+function encodeDeployData(
+  payer: string,
+  name: string,
+  symbol: string,
+  maxAgents: number
+) {
+  const nameBytes32 = stringToBytes32(name);
+  const symbolBytes16 = stringToBytes16(symbol);
+
+  const deployDataStruct = {
+    payer: payer,
+    name: nameBytes32,
+    symbol: symbolBytes16,
+    maxAgents: maxAgents,
+  };
+
+  const agentTraitsStruct = {
+    deployments: 0,
+    yield: 0,
+    status: 0,
+  };
+
+  return ethers.AbiCoder.defaultAbiCoder().encode(
+    [
+      "tuple(address payer, bytes32 name, bytes16 symbol, uint256 maxAgents)",
+      "tuple(uint256 deployments, uint256 yield, uint8 status)",
+    ],
+    [deployDataStruct, agentTraitsStruct]
+  );
+}
+
 describe("RadbotV1Deployer", function () {
   let deployer: RadbotV1Deployer;
   let factory: RadbotV1Factory;
@@ -126,13 +158,12 @@ describe("RadbotV1Deployer", function () {
 
   describe("Deploy Agent", function () {
     it("Should deploy agent successfully", async function () {
-      const nameBytes32 = stringToBytes32(AGENT_NAME);
-      const symbolBytes16 = stringToBytes16(AGENT_SYMBOL);
-
-      // Encode deployment data
-      const deployData = ethers.AbiCoder.defaultAbiCoder().encode(
-        ["address", "bytes32", "bytes16", "uint256"],
-        [user1.address, nameBytes32, symbolBytes16, MAX_AGENTS]
+      // Encode deployment data with new structure
+      const deployData = encodeDeployData(
+        user1.address,
+        AGENT_NAME,
+        AGENT_SYMBOL,
+        MAX_AGENTS
       );
 
       // Check initial balances
@@ -217,13 +248,12 @@ describe("RadbotV1Deployer", function () {
           "0x"
         );
 
-      const nameBytes32 = stringToBytes32(AGENT_NAME);
-      const symbolBytes16 = stringToBytes16(AGENT_SYMBOL);
-
-      // Encode deployment data
-      const deployData = ethers.AbiCoder.defaultAbiCoder().encode(
-        ["address", "bytes32", "bytes16", "uint256"],
-        [user1.address, nameBytes32, symbolBytes16, MAX_AGENTS]
+      // Encode deployment data with new structure
+      const deployData = encodeDeployData(
+        user1.address,
+        AGENT_NAME,
+        AGENT_SYMBOL,
+        MAX_AGENTS
       );
 
       // Remove approval to prevent NFT transfer
@@ -272,13 +302,12 @@ describe("RadbotV1Deployer", function () {
         .connect(user1)
         .approve(await mockManager.getAddress(), NEW_AGENT_ID);
 
-      const nameBytes32 = stringToBytes32(AGENT_NAME);
-      const symbolBytes16 = stringToBytes16(AGENT_SYMBOL);
-
-      // Encode deployment data
-      const deployData = ethers.AbiCoder.defaultAbiCoder().encode(
-        ["address", "bytes32", "bytes16", "uint256"],
-        [user1.address, nameBytes32, symbolBytes16, MAX_AGENTS]
+      // Encode deployment data with new structure
+      const deployData = encodeDeployData(
+        user1.address,
+        AGENT_NAME,
+        AGENT_SYMBOL,
+        MAX_AGENTS
       );
 
       // Set higher fee and reduce user1's USDC balance to make it insufficient
@@ -303,13 +332,12 @@ describe("RadbotV1Deployer", function () {
 
   describe("Stop Agent", function () {
     it("Should fail if agent not deployed", async function () {
-      const nameBytes32 = stringToBytes32(AGENT_NAME);
-      const symbolBytes16 = stringToBytes16(AGENT_SYMBOL);
-
-      // Encode deployment data
-      const deployData = ethers.AbiCoder.defaultAbiCoder().encode(
-        ["address", "bytes32", "bytes16", "uint256"],
-        [user1.address, nameBytes32, symbolBytes16, MAX_AGENTS]
+      // Encode deployment data with new structure
+      const deployData = encodeDeployData(
+        user1.address,
+        AGENT_NAME,
+        AGENT_SYMBOL,
+        MAX_AGENTS
       );
 
       // Try to stop a non-existent agent
@@ -329,12 +357,12 @@ describe("RadbotV1Deployer", function () {
       // Set higher fee to test insufficient fee error
       await deployer.setFee(ethers.parseEther("100"));
 
-      const nameBytes32 = stringToBytes32(AGENT_NAME);
-      const symbolBytes16 = stringToBytes16(AGENT_SYMBOL);
-
-      const deployData = ethers.AbiCoder.defaultAbiCoder().encode(
-        ["address", "bytes32", "bytes16", "uint256"],
-        [user1.address, nameBytes32, symbolBytes16, MAX_AGENTS]
+      // Encode deployment data with new structure
+      const deployData = encodeDeployData(
+        user1.address,
+        AGENT_NAME,
+        AGENT_SYMBOL,
+        MAX_AGENTS
       );
 
       await expect(

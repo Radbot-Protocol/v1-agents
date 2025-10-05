@@ -9,19 +9,22 @@ import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 
 import {IRadbotV1FactoryPayment} from "@v1-types/factory/IRadbotV1FactoryPayment.sol";
 import {IRadbotV1Deployer, IRadbotV1DeployerAction, IRadbotV1DeployerOwnerAction, IRadbotV1DeployerState} from "@v1-types/IRadbotV1Deployer.sol";
+import {IRadbotV1DeployerTypes} from "@v1-types/deployer/IRadbotV1DeployerTypes.sol";
 import {Ownable2Step, Ownable} from "@openzeppelin/contracts/access/Ownable2Step.sol";
 import {NoDelegateCall} from "./extensions/NoDelegateCall.sol";
 import {IRadbotV1DeployCallback} from "@v1-types/callback/IRadbotV1DeployCallback.sol";
 import {IRadbotV1StopCallback} from "@v1-types/callback/IRadbotV1StopCallback.sol";
 import {IRadbotV1FactoryState} from "@v1-types/factory/IRadbotV1FactoryState.sol";
 import {TransferHelper} from "./libraries/TransferHelper.sol";
+import {IRadbotV1AgentDeployerAction, IRadbotV1AgentTypes} from "@v1-types/agent/IRadbotV1AgentDeployerAction.sol";
 
 contract RadbotV1Deployer is
     IRadbotV1Deployer,
     IERC721Receiver,
     Ownable2Step,
     ReentrancyGuard,
-    NoDelegateCall
+    NoDelegateCall,
+    IRadbotV1AgentTypes
 {
     using EnumerableSet for EnumerableSet.AddressSet;
     using EnumerableSet for EnumerableSet.UintSet;
@@ -76,7 +79,16 @@ contract RadbotV1Deployer is
         uint256 agentId,
         bytes calldata data
     ) private {
-        DeployData memory deployData = abi.decode(data, (DeployData));
+        (
+            IRadbotV1DeployerTypes.DeployData memory deployData,
+            IRadbotV1AgentTypes.AgentTraits memory traits
+        ) = abi.decode(
+                data,
+                (
+                    IRadbotV1DeployerTypes.DeployData,
+                    IRadbotV1AgentTypes.AgentTraits
+                )
+            );
         address agent = _getAgent(
             deployData.name,
             deployData.symbol,
@@ -119,6 +131,8 @@ contract RadbotV1Deployer is
 
         _userTokens[from][agent].add(agentId);
 
+        IRadbotV1AgentDeployerAction(agent).traitsUpdate(traits, agentId);
+
         emit AgentDeployed(from, agent, agentId, msg.sender, feePaid);
     }
 
@@ -143,7 +157,16 @@ contract RadbotV1Deployer is
         uint256 agentId,
         bytes calldata data
     ) private {
-        DeployData memory deployData = abi.decode(data, (DeployData));
+        (
+            IRadbotV1DeployerTypes.DeployData memory deployData,
+            IRadbotV1AgentTypes.AgentTraits memory traits
+        ) = abi.decode(
+                data,
+                (
+                    IRadbotV1DeployerTypes.DeployData,
+                    IRadbotV1AgentTypes.AgentTraits
+                )
+            );
         address agent = _getAgent(
             deployData.name,
             deployData.symbol,
@@ -165,6 +188,8 @@ contract RadbotV1Deployer is
         // Record balances before callback
         uint256 agentBalanceBefore = IERC721(agent).balanceOf(address(this));
         uint256 feeBalanceBefore = fee > 0 ? _getBalance(token) : 0;
+
+        IRadbotV1AgentDeployerAction(agent).traitsUpdate(traits, agentId);
 
         IRadbotV1StopCallback(msg.sender).onAgentV1Stop(token, agentId, data);
 
