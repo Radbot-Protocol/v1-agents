@@ -103,6 +103,7 @@ contract RadbotV1Deployer is
         uint256 feeBalanceBefore = fee > 0 ? _getBalance(token) : 0;
 
         IRadbotV1DeployCallback(msg.sender).onAgentV1Deploy(
+            deployData.payer,
             token,
             agentId,
             data
@@ -191,7 +192,12 @@ contract RadbotV1Deployer is
 
         IRadbotV1AgentDeployerAction(agent).traitsUpdate(traits, agentId);
 
-        IRadbotV1StopCallback(msg.sender).onAgentV1Stop(token, agentId, data);
+        IRadbotV1StopCallback(msg.sender).onAgentV1Stop(
+            deployData.payer,
+            token,
+            agentId,
+            data
+        );
 
         // Verify fee was paid if required
         uint256 feePaid = 0;

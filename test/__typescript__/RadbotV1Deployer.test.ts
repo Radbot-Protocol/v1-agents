@@ -14,6 +14,7 @@ const { ethers } = await network.connect();
 // Helper function to encode deployment data with new structure
 function encodeDeployData(
   payer: string,
+  recipient: string,
   name: string,
   symbol: string,
   maxAgents: number
@@ -23,6 +24,7 @@ function encodeDeployData(
 
   const deployDataStruct = {
     payer: payer,
+    recipient: recipient,
     name: nameBytes32,
     symbol: symbolBytes16,
     maxAgents: maxAgents,
@@ -36,7 +38,7 @@ function encodeDeployData(
 
   return ethers.AbiCoder.defaultAbiCoder().encode(
     [
-      "tuple(address payer, bytes32 name, bytes16 symbol, uint256 maxAgents)",
+      "tuple(address payer, address recipient, bytes32 name, bytes16 symbol, uint256 maxAgents)",
       "tuple(uint256 deployments, uint256 yield, uint8 status)",
     ],
     [deployDataStruct, agentTraitsStruct]
@@ -161,6 +163,7 @@ describe("RadbotV1Deployer", function () {
       // Encode deployment data with new structure
       const deployData = encodeDeployData(
         user1.address,
+        user1.address,
         AGENT_NAME,
         AGENT_SYMBOL,
         MAX_AGENTS
@@ -251,6 +254,7 @@ describe("RadbotV1Deployer", function () {
       // Encode deployment data with new structure
       const deployData = encodeDeployData(
         user1.address,
+        user1.address,
         AGENT_NAME,
         AGENT_SYMBOL,
         MAX_AGENTS
@@ -305,6 +309,7 @@ describe("RadbotV1Deployer", function () {
       // Encode deployment data with new structure
       const deployData = encodeDeployData(
         user1.address,
+        user1.address,
         AGENT_NAME,
         AGENT_SYMBOL,
         MAX_AGENTS
@@ -335,6 +340,7 @@ describe("RadbotV1Deployer", function () {
       // Encode deployment data with new structure
       const deployData = encodeDeployData(
         user1.address,
+        user1.address,
         AGENT_NAME,
         AGENT_SYMBOL,
         MAX_AGENTS
@@ -359,6 +365,7 @@ describe("RadbotV1Deployer", function () {
 
       // Encode deployment data with new structure
       const deployData = encodeDeployData(
+        user1.address,
         user1.address,
         AGENT_NAME,
         AGENT_SYMBOL,
