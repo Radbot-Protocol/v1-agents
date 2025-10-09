@@ -32,11 +32,12 @@
     "clean": "hardhat clean && rm -rf types/",
     "compile": "npx hardhat compile",
     "test": "npx hardhat test",
-    "deploy:agent": "npx tsx scripts/deploy-agent.ts",
-    "mint:agent": "npx tsx scripts/mint-agent.ts",
-    "deploy:deployer:base": "npx hardhat ignition deploy ignition/modules/Deployer.ts  --network base",
-    "deploy:router:base": "npx hardhat ignition deploy ignition/modules/MintRouter.ts  --network base",
-    "gen:init:hash": "tsx scripts/gen-init-code-hash.ts"
+    "deploy:deployer:base": "npx hardhat ignition deploy ignition/modules/RadbotV1Deployer.ts  --network base",
+    "deploy:factory:base": "npx hardhat ignition deploy ignition/modules/RadbotV1Factory.ts  --network base",
+    "init:factory:base": "npx hardhat run scripts/init-factory.ts --network base",
+    "init:deployer:base": "npx hardhat run scripts/init-deployer.ts --network base",
+    "deploy:agent:base": "npx hardhat run scripts/deploy-agent.ts --network base",
+    "set:fee:base": "npx hardhat run scripts/setFee.ts --network base"
   },
   "dependencies": {
     "@openzeppelin/contracts": "^5.4.0"
